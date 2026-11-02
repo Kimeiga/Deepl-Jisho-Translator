@@ -16,14 +16,27 @@ async function translateText(englishTextToTranslate) {
   // }
   // let englishTextToTranslate = e.value;
 
-  await fetch(
-    `https://api-free.deepl.com/v2/translate?auth_key=b0731268-6ffd-6f0b-e0ad-f4f9a3a475e0:fx&text=${englishTextToTranslate}&target_lang=JA`,
-    { method: "POST" }
-  )
-    .then((response) => response.json())
-    .then((r) => (translatedJapaneseText = r.translations[0].text))
-    .then((result) => console.log(result))
-    .catch((error) => console.log("error", error));
+  // A server endpoint must authenticate and rate-limit callers, and keep
+  // DEEPL_AUTH_KEY on the server. No DeepL credentials belong in browser code.
+  try {
+    const response = await fetch("/api/translate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: englishTextToTranslate, target_lang: "JA" })
+    });
+    if (!response.ok) {
+      throw new Error("Translation proxy returned " + response.status);
+    }
+    const result = await response.json();
+    if (!result || typeof result.translation !== "string" || !result.translation) {
+      throw new Error("Translation proxy did not return a translation");
+    }
+    translatedJapaneseText = result.translation;
+  } catch (error) {
+    console.error("Translation unavailable", error);
+    window.alert("Translation is unavailable until a secure backend is configured.");
+    return;
+  }
 
   // 	console.log(
   // 		`https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(
