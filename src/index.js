@@ -4,11 +4,15 @@ let translatedJapaneseText;
 
 let jishoResponse;
 
-function search(ele) {
-  if (event.key === "Enter") {
-    translateText(ele.value);
-  }
-}
+// Register the handler from the bundled script instead of relying on a
+// global inline HTML handler (which module bundlers do not expose).
+document.addEventListener("DOMContentLoaded", () => {
+  const input = document.getElementById("textToTranslate");
+  if (!input) return;
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") translateText(input.value);
+  });
+});
 
 async function translateText(englishTextToTranslate) {
   // if (!e.key === "Enter") {
